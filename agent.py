@@ -1,6 +1,6 @@
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from config import llm
 from tools import all_tools
 
 def get_agent():
-    return create_react_agent(llm, all_tools)
+    return create_agent(llm, all_tools)
