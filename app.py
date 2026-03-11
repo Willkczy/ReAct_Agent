@@ -9,27 +9,15 @@ query = st.text_input("Enter your query:")
 
 if st.button("Submit") and query:
     with st.spinner("Agent is thinking..."):
-        result = agent.invoke({"messages": [{"role": "user", "content": query}]})
+        result = agent.invoke({"input": query})
 
     with st.expander("Step-by-step reasoning", expanded=False):
-        for msg in result["messages"]:
-            content = msg.content
-            if isinstance(content, list):
-                content = "\n".join(item.get("text", "") for item in content if isinstance(item, dict))
-            if not content:
-                continue
-            if msg.type == "human":
-                st.markdown(f"**User:** {content}")
-            elif msg.type == "ai":
-                st.markdown(f"**Thought:** {content[:500]}")
-            elif msg.type == "tool":
-                st.markdown(f"**Tool ({msg.name}):** {content[:500]}...")
+        for step in result.get("intermediate_steps", []):
+            action, observation = step
+            st.markdown(f"**Thought:** {action.log}")
+            st.markdown(f"**Action:** {action.tool}[{action.tool_input}]")
+            st.markdown(f"**Observation:** {str(observation)[:500]}")
+            st.markdown("---")
 
     st.subheader("Final Answer")
-    final = result["messages"][-1].content
-    # Handle Gemini's list-of-dicts format
-    if isinstance(final, list):
-        text = "\n".join(item["text"] for item in final if item.get("type") == "text")
-    else:
-        text = final
-    st.markdown(text)
+    st.markdown(result["output"])
